@@ -4,6 +4,13 @@ import { trpc } from "../../utils/trpc";
 
 import CustomInput from "../../components/CustomInput";
 import CustomButton from "../../components/CustomButton";
+import { NextPage } from "next";
+import { useSnackbar } from "notistack";
+import { useRouter } from "next/router";
+
+//redux
+import { registerSuccess } from "../../redux/slices/auth";
+import { useDispatch } from "react-redux";
 
 interface SignupData {
   username: string;
@@ -12,20 +19,27 @@ interface SignupData {
   cpassword: string;
 }
 
-const Signup = () => {
+const Signup: NextPage = () => {
   const [data, setData] = useState<SignupData>({
     username: "",
     email: "",
     password: "",
     cpassword: "",
   });
+  const { enqueueSnackbar } = useSnackbar();
+  const router = useRouter();
+  const dispatch = useDispatch();
 
-  const { mutate: signupMutation } = trpc.useMutation(["auth.signup"], {
+  const signupMutation = trpc.useMutation(["auth.signup"], {
     onError: (err) => {
-      console.log(err);
+      console.log(err, "here");
+      enqueueSnackbar(err.message, { variant: "error" });
     },
     onSuccess: (data) => {
       console.log(data);
+      localStorage.setItem("accessToken", data.token);
+      dispatch(registerSuccess({ user: data.user }));
+      router.push("/home");
     },
   });
 
@@ -39,7 +53,7 @@ const Signup = () => {
       password: data.password,
       email: data.email,
     };
-    signupMutation(fdata);
+    signupMutation.mutate(fdata);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,7 +84,7 @@ const Signup = () => {
             name="email"
             value={data.email}
             onChange={handleChange}
-          />{" "}
+          />
           <CustomInput
             label="Password"
             name="password"
@@ -85,7 +99,12 @@ const Signup = () => {
             type="password"
             onChange={handleChange}
           />
-          <CustomButton onClick={handleSignupClick}>SIGN UP</CustomButton>
+          <CustomButton
+            disabled={signupMutation.isLoading}
+            onClick={handleSignupClick}
+          >
+            SIGN UP
+          </CustomButton>
         </div>
       </main>
     </>

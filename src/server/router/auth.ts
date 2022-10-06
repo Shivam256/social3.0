@@ -2,6 +2,7 @@ import { createRouter } from "./context";
 import * as Inputs from "../inputs/auth.input";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import * as trpc from "@trpc/server";
 
 export const authRouter = createRouter().mutation("signup", {
   input: Inputs.signupInput,
@@ -14,10 +15,10 @@ export const authRouter = createRouter().mutation("signup", {
       },
     });
     if (userExist) {
-      return {
-        error: true,
-        message: "User already exists!",
-      };
+      throw new trpc.TRPCError({
+        code: "CONFLICT",
+        message: "User with this email already exists!",
+      });
     }
 
     const hash = await bcrypt.hash(password, 10);

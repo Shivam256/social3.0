@@ -24,7 +24,6 @@ const CustomInput = ({
   const [isFocused, setFocused] = useState<Boolean>(!(value == "") || false);
 
   useEffect(() => {
-    console.log(value, "jo");
     if (value != "") {
       setFocused(true);
     }

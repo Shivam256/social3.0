@@ -6,9 +6,25 @@ import type { AppType } from "next/dist/shared/lib/utils";
 import superjson from "superjson";
 import type { AppRouter } from "../server/router";
 import "../styles/globals.css";
+import { Provider } from "react-redux";
+import { store, persistor } from "../redux/store";
+import { PersistGate } from "redux-persist/lib/integration/react";
+import { SnackbarProvider } from "notistack";
+
+import MainLayout from "../layouts/MainLayout";
 
 const MyApp: AppType = ({ Component, pageProps }) => {
-  return <Component {...pageProps} />;
+  return (
+    <Provider store={store}>
+      <PersistGate persistor={persistor} loading={<div>loading ...</div>}>
+        <SnackbarProvider>
+          <MainLayout>
+            <Component {...pageProps} />
+          </MainLayout>
+        </SnackbarProvider>
+      </PersistGate>
+    </Provider>
+  );
 };
 
 const getBaseUrl = () => {
